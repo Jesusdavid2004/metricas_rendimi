@@ -1,34 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Laboratorio de Rendimiento: JavaScript Event Loop
 
-## Getting Started
+Aplicación interactiva en Next.js para explicar el funcionamiento del **Event Loop**, la diferencia entre **tasks** y **microtasks**, el impacto del bloqueo del hilo principal y la métrica **INP** (*Interaction to Next Paint*).
 
-First, run the development server:
+El caso de uso principal es un autocompletado que simula una consulta a servidor. La interfaz está en español; el código, servicios, funciones y comentarios están en inglés.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Funcionalidades
+
+- Autocompletado con sugerencias dinámicas.
+- Simulación de una API mediante `setTimeout`, representada como una **task**.
+- Validación inmediata mediante `Promise.resolve().then()`, representada como una **microtask**.
+- Visualización en tiempo real de `Task Queue` y `Microtask Queue`.
+- Demostración de prioridad: el callback de `Promise` se ejecuta antes que el de `setTimeout`.
+- Registro visual y en la consola de ejecuciones `MICROTASK`, `TASK` y `SYSTEM`.
+- Medición de INP normal al escribir en el autocompletado.
+- Medición de INP bloqueado tras una operación síncrona pesada de 3.5 segundos.
+- Indicador del estado del hilo principal: `Idle`, `Busy` y `Blocked`.
+- Comparación entre cálculo bloqueante en el hilo principal y cálculo en un `Web Worker`.
+
+## Tecnologías
+
+- Next.js 16
+- React 19
+- TypeScript
+- CSS nativo
+
+No se usan librerías externas de interfaz.
+
+## Estructura del proyecto
+
+```text
+src/
+	app/
+		globals.css                 # Global styles and responsive layout
+		layout.tsx                  # Root layout and metadata
+		page.tsx                    # Main page
+	components/
+		Autocomplete.tsx            # Search input and suggestions UI
+		EventLoopDemo.tsx           # React container and interaction orchestration
+		MetricsPanel.tsx            # INP and main-thread status UI
+		QueueVisualizer.tsx         # Task and microtask queue UI
+		RuntimeLog.tsx              # Execution timeline UI
+	services/
+		AutocompleteService.ts      # Autocomplete query logic
+		EventLoopService.ts         # Queue state and execution log management
+		MetricsService.ts           # Interaction timing helpers
+	utils/
+		blockMainThread.ts          # Synchronous blocking calculation
+		fakeApi.ts                  # setTimeout-based server simulation
+	workers/
+		heavyCalculation.worker.ts  # Non-blocking calculation worker
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Ejecutar localmente
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Requisitos
 
-## Learn More
+- Node.js 20 o superior
+- npm 10 o superior
 
-To learn more about Next.js, take a look at the following resources:
+### Instalación
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+git clone https://github.com/Jesusdavid2004/metricas_rendimi.git
+cd metricas_rendimi
+npm install
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Abre `http://localhost:3000` en el navegador.
 
-## Deploy on Vercel
+## Guion para la demostración
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Escribe `web` o `java` en el autocompletado.
+2. Observa que aparece la validación de la **microtask** y que la consulta queda en `Task Queue` durante la espera simulada del servidor.
+3. Espera la respuesta y observa las sugerencias junto con el valor de `INP normal`.
+4. Pulsa **Ejecutar demostración de prioridad**. El registro muestra que `Promise` se ejecuta antes que `setTimeout`.
+5. Pulsa **Bloquear hilo principal**. El estado cambia a `Blocked`, la interfaz deja de responder durante 3.5 segundos y `INP bloqueado` evidencia el impacto.
+6. Pulsa **Ejecutar en Web Worker**. El cálculo se realiza sin congelar el input ni el pintado de la interfaz.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Validación
+
+```bash
+npm run lint
+npm run build
+```
+
+El proyecto usa Webpack en sus scripts para funcionar correctamente en entornos Windows donde el binding nativo de SWC no esté disponible.
+
+## Despliegue
+
+El proyecto está listo para desplegarse en [Vercel](https://vercel.com/new). Importa el repositorio de GitHub, conserva los valores detectados por Next.js y realiza el despliegue.
